@@ -1,6 +1,8 @@
 import onChange from 'on-change';
 import i18next from 'i18next';
 import axios from 'axios';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { uniqueId } from 'lodash';
 
 import validate from './validate.js';
 import parser from './parser.js';
@@ -34,6 +36,7 @@ export default () => {
     feed: [],
     errors: [],
     channel: [],
+    update: 'start',
   };
 
   const renderError = (err) => {
@@ -44,7 +47,7 @@ export default () => {
   };
 
   const renderFeed = () => {
-    feedback.textContent = 'RSS успешно загружен'; //Перенести в i18n
+    feedback.textContent = 'RSS успешно загружен'; // Перенести в i18n
     input.classList.remove('is-invalid');
     feedback.classList.remove('text-danger');
     feedback.classList.add('text-success');
@@ -103,19 +106,19 @@ export default () => {
       ulFeeds.append(li);
 
       chan.item.forEach((post) => {
-        const li = document.createElement('li');
+        const liPost = document.createElement('li');
         const a = document.createElement('a');
         const button = document.createElement('button');
-        postsUl.append(li);
-        li.append(a);
-        li.append(button);
-        li.classList.add(
+        postsUl.append(liPost);
+        liPost.append(a);
+        liPost.append(button);
+        liPost.classList.add(
           'list-group-item',
           'd-flex',
           'justify-content-between',
           'align-items-start',
           'border-0',
-          'border-end-0'
+          'border-end-0',
         );
         a.textContent = post.title;
         a.href = post.link;
@@ -130,45 +133,18 @@ export default () => {
   const watchedState = onChange(state, (path, value) => {
     if (path === 'errors') {
       renderError(value);
-    }(strHTML) => {
-        // вынести в отдельный файл!
-        const pars = new DOMParser();
-        const res = pars.parseFromString(strHTML, 'text/html');
-        const channelDes = res.querySelector('channel');
-        const itemElements = res.querySelectorAll('item');
-    
-        const channel = {
-          title: channelDes.querySelector('title').textContent,
-          description: channelDes.querySelector('description').innerHTML,
-          item: [],
-        };
-    
-        itemElements.forEach((el) => {
-          const post = {
-            title: el.querySelector('title').innerHTML,
-            description: el.querySelector('description').innerHTML,
-            link: el.querySelector('guid').innerHTML,
-          };
-          channel.item.push(post);
-        });
-        return channel;
-      };
+    }
     if (path === 'channel') {
+      renderFeed();
+    }
+    if (path === 'update') {
       renderFeed();
     }
   });
 
-  const normolString = (str) => {
-    const reg = /\[(.*?)\]/;
-    const result = str.match(reg);
-    console.log(str.match(reg));
-    if (result.length === 1) {
-      return str;
-    }
-    return result.at(-1).split('[')[1];
-  };
+  const getRequest = (url) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url= ${url}`);
 
-  const formValidity = (event) => {
+  const formValidaty = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
     const valueForm = formData.get('url');
@@ -178,29 +154,47 @@ export default () => {
         watchedState.stateForm = 'valid';
         watchedState.valueForm = valueForm;
       })
-      .then(() => {
-        axios
-          .get(
-            `https://allorigins.hexlet.app/get?disableCache=true&url= ${valueForm}`
-          )
-          .then((response) => {
-            const channel = parser(response.data.contents);
-            watchedState.channel.push(channel);
-          })
-          .catch((e) => {
-            console.log(e);
-            watchedState.errors = 'resNotValErr';
-            watchedState.stateForm = 'invalid';
-            watchedState.valueForm = '';
-            watchedState.feed.pop();
-          });
+      .then(() => getRequest(valueForm))
+      .then((response) => {
+        const channel = parser(response.data.contents);
+        channel.id = uniqueId();
+        channel.url = valueForm;
+        watchedState.stateForm = 'valid';
+        watchedState.channel[channel.id] = channel;
+        watchedState.update = 'addChannel';
+      })
+      .catch((e) => {
+        console.log(e);
+        watchedState.errors = 'resNotValErr';
+        watchedState.stateForm = 'invalid';
+        watchedState.valueForm = '';
+        watchedState.feed.pop();
       })
       .catch((err) => {
         watchedState.errors = err.message;
         watchedState.stateForm = 'invalid';
         watchedState.valueForm = '';
+      })
+      .then(() => {
+        const updateChannels = () => {
+          watchedState.update = 'updatePosts';
+          setTimeout(() => {
+            state.channel.forEach((el) => {
+              const newChanel = getRequest(el.url);
+              newChanel.then((response) => {
+                const par = parser(response.data.contents);
+                const oldPosts = el.item.map((element) => element.title);
+                const newPosts = par.item.filter((feed) => !oldPosts.includes(feed.title));
+                watchedState.channel[el.id].item.unshift(...newPosts);
+                watchedState.update = 'finish';
+              });
+            });
+            updateChannels();
+          }, '5000');
+        };
+        updateChannels();
       });
   };
 
-  form.addEventListener('submit', formValidity);
+  form.addEventListener('submit', formValidaty);
 };
