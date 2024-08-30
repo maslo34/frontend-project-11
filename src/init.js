@@ -47,34 +47,55 @@ export default () => {
   };
 
   const renderFeed = () => {
-    feedback.textContent = 'RSS успешно загружен'; // Перенести в i18n
-    input.classList.remove('is-invalid');
-    feedback.classList.remove('text-danger');
-    feedback.classList.add('text-success');
-    form.reset();
-    input.focus();
+    if (state.update === 'loadingPosts') {
+      return;
+    }
 
-    const feedsConteiner = document.querySelector('.feeds');
+    if (state.update === 'addChannel') {
+      feedback.textContent = 'RSS успешно загружен'; // Перенести в i18n
+      input.classList.remove('is-invalid');
+      feedback.classList.remove('text-danger');
+      feedback.classList.add('text-success');
+      form.reset();
+      input.focus();
+
+      const feedsConteiner = document.querySelector('.feeds');
+      feedsConteiner.innerHTML = '';
+      const borderFeeds = document.createElement('div');
+      const bodyFeeds = document.createElement('div');
+      const titleFeeds = document.createElement('h2');
+      const ulFeeds = document.createElement('ul');
+
+      feedsConteiner.append(borderFeeds);
+      borderFeeds.append(bodyFeeds);
+      borderFeeds.append(ulFeeds);
+      bodyFeeds.append(titleFeeds);
+
+      borderFeeds.classList.add('card', 'border-0');
+      bodyFeeds.classList.add('card-body');
+      titleFeeds.classList.add('card-title', 'h4');
+      titleFeeds.textContent = 'Фиды';
+      ulFeeds.classList.add('list-group', 'border-0', 'rounded-8');
+
+      state.channel.forEach((chan) => {
+        const li = document.createElement('li');
+        const h3 = document.createElement('h3');
+        const p = document.createElement('p');
+
+        li.classList.add('list-group-item', 'border-0', 'border-end-0');
+        p.classList.add('m-0', 'small', 'text-black-50');
+        h3.classList.add('h6', 'm-0');
+        p.textContent = chan.description;
+        h3.textContent = chan.title;
+        li.append(h3);
+        li.append(p);
+        ulFeeds.append(li);
+      });
+    }
+
     const postsConteiner = document.querySelector('.posts');
 
-    feedsConteiner.innerHTML = '';
     postsConteiner.innerHTML = '';
-
-    const borderFeeds = document.createElement('div');
-    const bodyFeeds = document.createElement('div');
-    const titleFeeds = document.createElement('h2');
-    const ulFeeds = document.createElement('ul');
-
-    feedsConteiner.append(borderFeeds);
-    borderFeeds.append(bodyFeeds);
-    borderFeeds.append(ulFeeds);
-    bodyFeeds.append(titleFeeds);
-
-    borderFeeds.classList.add('card', 'border-0');
-    bodyFeeds.classList.add('card-body');
-    titleFeeds.classList.add('card-title', 'h4');
-    titleFeeds.textContent = 'Фиды';
-    ulFeeds.classList.add('list-group', 'border-0', 'rounded-8');
 
     const borderPosts = document.createElement('div');
     const postsBody = document.createElement('div');
@@ -92,19 +113,6 @@ export default () => {
     postsUl.classList.add('list-group', 'border-0', 'rounded-8');
 
     state.channel.forEach((chan) => {
-      const li = document.createElement('li');
-      const h3 = document.createElement('h3');
-      const p = document.createElement('p');
-
-      li.classList.add('list-group-item', 'border-0', 'border-end-0');
-      p.classList.add('m-0', 'small', 'text-black-50');
-      h3.classList.add('h6', 'm-0');
-      p.textContent = chan.description;
-      h3.textContent = chan.title;
-      li.append(h3);
-      li.append(p);
-      ulFeeds.append(li);
-
       chan.item.forEach((post) => {
         const liPost = document.createElement('li');
         const a = document.createElement('a');
@@ -134,9 +142,6 @@ export default () => {
     if (path === 'errors') {
       renderError(value);
     }
-    if (path === 'channel') {
-      renderFeed();
-    }
     if (path === 'update') {
       renderFeed();
     }
@@ -156,6 +161,10 @@ export default () => {
       })
       .then(() => getRequest(valueForm))
       .then((response) => {
+        if (response.data.status.http_code > 200 || response.data.contents === 'null') {
+          watchedState.feed.pop();
+          throw new Error('resNotValErr');
+        }
         const channel = parser(response.data.contents);
         channel.id = uniqueId();
         channel.url = valueForm;
@@ -163,38 +172,34 @@ export default () => {
         watchedState.channel[channel.id] = channel;
         watchedState.update = 'addChannel';
       })
-      .catch((e) => {
-        console.log(e);
-        watchedState.errors = 'resNotValErr';
-        watchedState.stateForm = 'invalid';
-        watchedState.valueForm = '';
-        watchedState.feed.pop();
-      })
       .catch((err) => {
         watchedState.errors = err.message;
         watchedState.stateForm = 'invalid';
         watchedState.valueForm = '';
-      })
-      .then(() => {
-        const updateChannels = () => {
-          watchedState.update = 'updatePosts';
-          setTimeout(() => {
-            state.channel.forEach((el) => {
-              const newChanel = getRequest(el.url);
-              newChanel.then((response) => {
-                const par = parser(response.data.contents);
-                const oldPosts = el.item.map((element) => element.title);
-                const newPosts = par.item.filter((feed) => !oldPosts.includes(feed.title));
-                watchedState.channel[el.id].item.unshift(...newPosts);
-                watchedState.update = 'finish';
-              });
-            });
-            updateChannels();
-          }, '5000');
-        };
-        updateChannels();
       });
   };
 
   form.addEventListener('submit', formValidaty);
+
+  const updateChannels = () => {
+    watchedState.update = 'loadingPosts';
+    if (state.update !== 'start') {
+      setTimeout(() => {
+        state.channel.forEach((el) => {
+          const newChanel = getRequest(el.url);
+          newChanel.then((response) => {
+            const par = parser(response.data.contents);
+            const oldPosts = el.item.map((element) => element.title);
+            const newPosts = par.item.filter((feed) => !oldPosts.includes(feed.title));
+            watchedState.channel[el.id].item.unshift(...newPosts);
+            watchedState.update = 'updatePosts';
+          });
+        });
+        updateChannels();
+      }, '5000');
+    } else {
+      setTimeout(() => updateChannels(), '5000');
+    }
+  };
+  updateChannels();
 };
