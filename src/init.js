@@ -80,9 +80,6 @@ export default () => {
         if (err.isAxiosError) {
           watchedState.errors = 'err_network';
         }
-        if (err.isParserError) {
-          watchedState.errors = 'err_invalidRss';
-        }
         watchedState.errors = err.message;
         watchedState.stateForm = 'invalid';
         watchedState.valueForm = '';
