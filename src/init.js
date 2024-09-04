@@ -78,7 +78,10 @@ export default () => {
       })
       .catch((err) => {
         if (err.isAxiosError) {
-          watchedState.form.error = new Error('err_network');
+          watchedState.errors = 'err_network';
+        }
+        if (err.isParserError) {
+          watchedState.errors = 'err_invalidRss';
         }
         watchedState.errors = err.message;
         watchedState.stateForm = 'invalid';
