@@ -26,7 +26,7 @@ const renderFeed = (state) => {
 
   if (state.update === 'addChannel') {
     const newFeedback = state.elementsForm.feedback;
-    newFeedback.textContent = 'RSS успешно загружен'; // Перенести в i18n
+    newFeedback.textContent = i18next.t('successMessage');
     state.elementsForm.input.classList.remove('is-invalid');
     state.elementsForm.feedback.classList.remove('text-danger');
     state.elementsForm.feedback.classList.add('text-success');

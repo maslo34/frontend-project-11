@@ -17,6 +17,9 @@ const init = () => {
           valHrefErr: 'Ссылка должна быть валидным URL',
           existsErr: 'RSS уже существует',
           resNotValErr: 'Ресурс не содержит валидный RSS',
+          successMessage: 'RSS успешно загружен',
+          err_emptyField: 'Не должно быть пустым',
+          err_network: 'Ошибка сети',
         },
       },
     },
@@ -74,6 +77,9 @@ export default () => {
         watchedState.update = 'addChannel';
       })
       .catch((err) => {
+        if (err.isAxiosError) {
+          watchedState.form.error = new Error('err_network');
+        }
         watchedState.errors = err.message;
         watchedState.stateForm = 'invalid';
         watchedState.valueForm = '';
