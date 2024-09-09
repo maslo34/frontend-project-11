@@ -28,7 +28,6 @@ const init = () => {
   const state = {
     valueForm: '',
     stateForm: 'invalid',
-    feed: [],
     errors: '',
     channel: [],
     lincsRead: [],
@@ -55,17 +54,13 @@ export default () => {
     const formData = new FormData(event.target);
     const valueForm = formData.get('url');
     validate({ url: valueForm }, state)
-      .then((href) => {
-        watchedState.feed.push(href);
+      .then(() => {
         watchedState.stateForm = 'sending';
         watchedState.valueForm = valueForm;
+        watchedState.stateForm = 'success';
       })
       .then(() => getRequest(valueForm))
       .then((response) => {
-        // if (response.data.status.http_code > 200 || response.data.contents === 'null') {
-        //   watchedState.feed.pop();
-        //   throw new Error('resNotValErr');
-        // }
         const channel = parser(response.data.contents);
         channel.id = uniqueId();
         channel.item.forEach((element) => {

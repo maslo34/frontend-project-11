@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 export default (data, state) => {
-  const loadedFeeds = state.feed.map((item) => item.url);
+  const loadedFeeds = state.channel.map((item) => item.url);
 
   yup.setLocale({
     string: {
