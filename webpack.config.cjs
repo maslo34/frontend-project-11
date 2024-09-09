@@ -37,9 +37,9 @@ const config = {
           {
             loader: 'postcss-loader',
             options: {
-              postcssOptions: {
-                plugins: () => [require('autoprefixer')],
-              },
+              // postcssOptions: {
+              //   plugins: () => [require('autoprefixer')],
+              // },
             },
           },
           {
