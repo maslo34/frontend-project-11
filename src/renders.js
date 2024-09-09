@@ -120,12 +120,35 @@ const renderFeed = (state) => {
   });
 };
 
-const renderError = (err, state) => {
+const renderError = (state) => {
   const newFeedback = state.elementsForm.feedback;
-  newFeedback.textContent = i18next.t(err);
+  newFeedback.textContent = i18next.t(state.errors);
   state.elementsForm.input.classList.add('is-invalid');
   state.elementsForm.feedback.classList.remove('text-success');
   state.elementsForm.feedback.classList.add('text-danger');
 };
 
-export { renderError, renderFeed };
+const renderSuccessMessage = (elements) => {
+  const newFeedback = elements.feedback;
+  elements.input.classList.remove('is-invalid');
+  elements.feedback.classList.remove('text-danger');
+  elements.feedback.classList.add('text-success');
+  newFeedback.textContent = i18next.t('successMessage');
+};
+
+const clearFeedback = (elements) => {
+  const newFeedback = elements.feedback;
+  elements.input.classList.remove('is-invalid');
+  elements.input.classList.remove('is-valid');
+
+  elements.feedback.classList.remove('text-danger');
+  elements.feedback.classList.remove('text-success');
+  newFeedback.textContent = '';
+};
+
+export {
+  renderError,
+  renderFeed,
+  clearFeedback,
+  renderSuccessMessage,
+};

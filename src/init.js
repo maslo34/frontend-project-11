@@ -37,6 +37,7 @@ const init = () => {
       form: document.querySelector('form'),
       feedback: document.querySelector('.feedback'),
       input: document.querySelector('#url-input'),
+      submit: document.querySelector('[aria-label=add]'),
     },
   };
   return state;
@@ -56,7 +57,7 @@ export default () => {
     validate({ url: valueForm }, state)
       .then((href) => {
         watchedState.feed.push(href);
-        watchedState.stateForm = 'valid';
+        watchedState.stateForm = 'sending';
         watchedState.valueForm = valueForm;
       })
       .then(() => getRequest(valueForm))
@@ -72,7 +73,7 @@ export default () => {
           newElementId.id = uniqueId();
         });
         channel.url = valueForm;
-        watchedState.stateForm = 'valid';
+        watchedState.stateForm = 'success';
         watchedState.channel[channel.id] = channel;
         watchedState.update = 'addChannel';
       })
@@ -81,8 +82,7 @@ export default () => {
           watchedState.errors = 'err_network';
         }
         watchedState.errors = err.message;
-        watchedState.stateForm = 'invalid';
-        watchedState.valueForm = '';
+        watchedState.stateForm = 'error';
       });
   };
   state.elementsForm.form.addEventListener('submit', formValidaty);
