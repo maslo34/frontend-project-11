@@ -82,6 +82,7 @@ export default () => {
       .catch((err) => {
         if (err.isAxiosError) {
           watchedState.errors = 'err_network';
+          watchedState.stateForm = 'error';
         }
         if (err.isParserError) {
           watchedState.errors = 'resNotValErr';
