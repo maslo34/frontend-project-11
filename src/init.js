@@ -29,7 +29,7 @@ const init = () => {
     valueForm: '',
     stateForm: 'invalid',
     feed: [],
-    errors: [],
+    errors: '',
     channel: [],
     lincsRead: [],
     update: 'start',
@@ -62,10 +62,10 @@ export default () => {
       })
       .then(() => getRequest(valueForm))
       .then((response) => {
-        if (response.data.status.http_code > 200 || response.data.contents === 'null') {
-          watchedState.feed.pop();
-          throw new Error('resNotValErr');
-        }
+        // if (response.data.status.http_code > 200 || response.data.contents === 'null') {
+        //   watchedState.feed.pop();
+        //   throw new Error('resNotValErr');
+        // }
         const channel = parser(response.data.contents);
         channel.id = uniqueId();
         channel.item.forEach((element) => {
@@ -80,6 +80,10 @@ export default () => {
       .catch((err) => {
         if (err.isAxiosError) {
           watchedState.errors = 'err_network';
+        }
+        if (err.isParserError) {
+          watchedState.errors = 'resNotValErr';
+          watchedState.stateForm = 'error';
         }
         watchedState.errors = err.message;
         watchedState.stateForm = 'error';

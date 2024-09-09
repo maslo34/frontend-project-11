@@ -2,6 +2,12 @@ export default (strHTML) => {
   // вынести в отдельный файл!
   const pars = new DOMParser();
   const getHTML = pars.parseFromString(strHTML, 'text/xml');
+  const nodeError = getHTML.querySelector('parsererror');
+  if (nodeError) {
+    const error = new Error('resNotValErr');
+    error.isParserError = true;
+    throw error;
+  }
   const channelDes = getHTML.querySelector('channel');
   const itemElements = getHTML.querySelectorAll('item');
 

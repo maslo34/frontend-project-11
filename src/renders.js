@@ -146,9 +146,19 @@ const clearFeedback = (elements) => {
   newFeedback.textContent = '';
 };
 
+const renderFeedback = (state) => {
+  if (state.stateForm === 'sending') {
+    clearFeedback(state.elementsForm);
+    return;
+  }
+  if (state.stateForm !== 'error') {
+    renderSuccessMessage(state.elementsForm);
+    return;
+  }
+  renderError(state);
+};
 export {
   renderError,
   renderFeed,
-  clearFeedback,
-  renderSuccessMessage,
+  renderFeedback,
 };

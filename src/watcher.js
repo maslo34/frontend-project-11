@@ -1,31 +1,26 @@
 import onChange from 'on-change';
 
-import {
-  renderError,
-  renderFeed,
-  clearFeedback,
-  renderSuccessMessage,
-} from './renders.js';
+import { renderFeed, renderFeedback } from './renders.js';
 
 export default (state) => {
   const handleProcessState = (processState) => {
     const { input, submit, form } = state.elementsForm;
     switch (processState) {
       case 'error':
-        renderError(state);
+        renderFeedback(state);
         input.disabled = false;
         submit.disabled = false;
         input.focus();
         break;
 
       case 'sending':
-        clearFeedback(state.elementsForm);
+        renderFeedback(state);
         submit.disabled = true;
         input.disabled = true;
         break;
 
       case 'success':
-        renderSuccessMessage(state.elementsForm);
+        renderFeedback(state);
         input.disabled = false;
         submit.disabled = false;
         form.reset();
