@@ -90,7 +90,6 @@ export default () => {
         }
         watchedState.errors = err.message;
         watchedState.stateForm = 'error';
-        console.error(err)
       });
   };
   state.elementsForm.form.addEventListener('submit', formValidaty);
