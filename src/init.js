@@ -7,6 +7,14 @@ import validate from './validate.js';
 import parser from './parser.js';
 import watched from './watcher.js';
 
+const proxifyUrl = (url) => {
+  const newUrl = new URL('https://allorigins.hexlet.app');
+  newUrl.pathname = '/get';
+  newUrl.searchParams.set('disableCache', 'true');
+  newUrl.searchParams.set('url', url);
+  return newUrl;
+};
+
 const init = () => {
   i18next.init({
     lng: 'ru',
@@ -47,17 +55,16 @@ export default () => {
 
   const watchedState = watched(state);
 
-  const getRequest = (url) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url= ${url}`);
+  const getRequest = (url) => axios.get(proxifyUrl(url));
 
   const formValidaty = (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const valueForm = formData.get('url');
+    const valueForm = formData.get('url').trim();
     validate({ url: valueForm }, state)
       .then(() => {
         watchedState.stateForm = 'sending';
         watchedState.valueForm = valueForm;
-        watchedState.stateForm = 'success';
       })
       .then(() => getRequest(valueForm))
       .then((response) => {
@@ -82,6 +89,7 @@ export default () => {
         }
         watchedState.errors = err.message;
         watchedState.stateForm = 'error';
+        console.error(err)
       });
   };
   state.elementsForm.form.addEventListener('submit', formValidaty);
