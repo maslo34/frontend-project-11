@@ -6,6 +6,7 @@ import { uniqueId } from 'lodash';
 import validate from './validate.js';
 import parser from './parser.js';
 import watched from './watcher.js';
+import resources from './locales/index.js';
 
 const proxifyUrl = (url) => {
   const newUrl = new URL('https://allorigins.hexlet.app');
@@ -19,18 +20,7 @@ const init = () => {
   i18next.init({
     lng: 'ru',
     debug: true,
-    resources: {
-      ru: {
-        translation: {
-          valHrefErr: 'Ссылка должна быть валидным URL',
-          existsErr: 'RSS уже существует',
-          resNotValErr: 'Ресурс не содержит валидный RSS',
-          successMessage: 'RSS успешно загружен',
-          err_emptyField: 'Не должно быть пустым',
-          err_network: 'Ошибка сети',
-        },
-      },
-    },
+    resources,
   });
 
   const state = {
@@ -40,12 +30,6 @@ const init = () => {
     channel: [],
     lincsRead: [],
     update: 'start',
-    elementsForm: {
-      form: document.querySelector('form'),
-      feedback: document.querySelector('.feedback'),
-      input: document.querySelector('#url-input'),
-      submit: document.querySelector('[aria-label=add]'),
-    },
   };
   return state;
 };
@@ -53,7 +37,14 @@ const init = () => {
 export default () => {
   const state = init(); // инициализация приложения
 
-  const watchedState = watched(state);
+  const elements = {
+    form: document.querySelector('form'),
+    feedback: document.querySelector('.feedback'),
+    input: document.querySelector('#url-input'),
+    submit: document.querySelector('[aria-label=add]'),
+  };
+
+  const watchedState = watched(state, elements);
 
   const getRequest = (url) => axios.get(proxifyUrl(url));
 
@@ -92,7 +83,7 @@ export default () => {
         watchedState.stateForm = 'error';
       });
   };
-  state.elementsForm.form.addEventListener('submit', formValidaty);
+  elements.form.addEventListener('submit', formValidaty);
 
   const updateChannels = () => {
     setTimeout(() => {

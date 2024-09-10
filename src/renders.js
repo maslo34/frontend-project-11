@@ -19,19 +19,19 @@ const renderModal = (event, state) => {
   link.classList.add('fw-normal', 'link-secondary');
 };
 
-const renderFeed = (state) => {
+const renderFeed = (state, elements) => {
   if (state.update === 'loadingPosts') {
     return;
   }
 
   if (state.update === 'addChannel') {
-    const newFeedback = state.elementsForm.feedback;
+    const newFeedback = elements.feedback;
     newFeedback.textContent = i18next.t('successMessage');
-    state.elementsForm.input.classList.remove('is-invalid');
-    state.elementsForm.feedback.classList.remove('text-danger');
-    state.elementsForm.feedback.classList.add('text-success');
-    state.elementsForm.form.reset();
-    state.elementsForm.input.focus();
+    elements.input.classList.remove('is-invalid');
+    elements.feedback.classList.remove('text-danger');
+    elements.feedback.classList.add('text-success');
+    elements.form.reset();
+    elements.input.focus();
 
     const feedsConteiner = document.querySelector('.feeds');
     feedsConteiner.innerHTML = '';
@@ -120,12 +120,12 @@ const renderFeed = (state) => {
   });
 };
 
-const renderError = (state) => {
-  const newFeedback = state.elementsForm.feedback;
+const renderError = (state, elements) => {
+  const newFeedback = elements.feedback;
   newFeedback.textContent = i18next.t(state.errors);
-  state.elementsForm.input.classList.add('is-invalid');
-  state.elementsForm.feedback.classList.remove('text-success');
-  state.elementsForm.feedback.classList.add('text-danger');
+  elements.input.classList.add('is-invalid');
+  elements.feedback.classList.remove('text-success');
+  elements.feedback.classList.add('text-danger');
 };
 
 const renderSuccessMessage = (elements) => {
@@ -146,16 +146,16 @@ const clearFeedback = (elements) => {
   newFeedback.textContent = '';
 };
 
-const renderFeedback = (state) => {
+const renderFeedback = (state, elements) => {
   if (state.stateForm === 'sending') {
-    clearFeedback(state.elementsForm);
+    clearFeedback(elements);
     return;
   }
   if (state.stateForm !== 'error') {
-    renderSuccessMessage(state.elementsForm);
+    renderSuccessMessage(elements);
     return;
   }
-  renderError(state);
+  renderError(state, elements);
 };
 export {
   renderError,

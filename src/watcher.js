@@ -2,25 +2,25 @@ import onChange from 'on-change';
 
 import { renderFeed, renderFeedback } from './renders.js';
 
-export default (state) => {
+export default (state, elements) => {
   const handleProcessState = (processState) => {
-    const { input, submit, form } = state.elementsForm;
+    const { input, submit, form } = elements;
     switch (processState) {
       case 'error':
-        renderFeedback(state);
+        renderFeedback(state, elements);
         input.disabled = false;
         submit.disabled = false;
         input.focus();
         break;
 
       case 'sending':
-        renderFeedback(state);
+        renderFeedback(state, elements);
         submit.disabled = true;
         input.disabled = true;
         break;
 
       case 'success':
-        renderFeedback(state);
+        renderFeedback(state, elements);
         input.disabled = false;
         submit.disabled = false;
         form.reset();
@@ -36,7 +36,7 @@ export default (state) => {
       handleProcessState(value);
     }
     if (path === 'update') {
-      renderFeed(state);
+      renderFeed(state, elements);
     }
   });
   return watchedState;
